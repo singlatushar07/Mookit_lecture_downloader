@@ -1,0 +1,2 @@
+run "pip3 install -r requirements.txt" to install all dependencies.
+run "python __init__.py" to start download the data
