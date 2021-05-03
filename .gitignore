@@ -1,4 +1,4 @@
 cookie
 build
 __pycache__
-data/
+data/*
