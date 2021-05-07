@@ -6,6 +6,8 @@ import requests
 import pickle
 import os
 from tabulate import tabulate
+from unsilence import Unsilence
+
 
 loginUrl = "https://hello.iitk.ac.in/user/login"
 courseListUrl = "https://hello.iitk.ac.in/courses/"
@@ -53,12 +55,16 @@ print(tabulate(temp, headers=["Week", "Title", "Topic",
 downloadQuality = input(
     "Enter video quality you want to download(mp4 or original): ")
 
+wantSilence = input(
+    "Do you want to remove silenced parts from the downloaded videos? (yes/no) ")
+
 downloadPath = os.path.join(os.path.dirname(
     __file__), './data/' + courseList[index]['courseCode'] + '/')
 if not os.path.exists(downloadPath):
     os.makedirs(downloadPath)
 
 failed = []
+success = []
 for lecture in lectures:
     print("Downloading %s" % lecture['title'])
     downloadPath = os.path.join(os.path.dirname(
@@ -68,13 +74,17 @@ for lecture in lectures:
 
     file_name = os.path.join(os.path.dirname(
         __file__), './data/' + courseList[index]['courseCode'] + '/' + lecture['week'] + '/' + lecture['title'] + ".mp4")
+    flag = 0
     for video in lecture['videoUrl']:
         if(os.path.exists(file_name)):
+            if(video['type'] == downloadQuality):
+                success.append(file_name)
             continue
         try:
             if(video['type'] == downloadQuality):
                 videoUrl = unquote(video['path'])
                 wget.download(videoUrl, out=file_name)
+                success.append(file_name)
         except:
             failed.append(lecture['title'])
             print("Failed to Download " + lecture['title'])
@@ -88,6 +98,30 @@ for lecture in lectures:
     print()
     print("%s downloaded!\n" % file_name)
 
-print("Following files were not downloaded")
-for i in failed:
-    print(i)
+if(len(failed) > 0):
+    print("Following files were not downloaded")
+    for i in failed:
+        print(i)
+
+wantSilence = input(
+    "Do you want to remove silenced parts from the downloaded videos? (yes/no) ")
+if(wantSilence == "yes"):
+    print("The operation may take while. Sit back and relax. You can always resume by rerunning the program")
+    # print(success)
+    for video in success:
+        print("Processing", video)
+        output_file = video[:-4]+"_silenced.mp4"
+        if(os.path.exists(output_file)):
+            print("The file", output_file, "is already processed.")
+            continue
+        u = Unsilence(video)
+        # print(video[:-4]+"_silenced.mp4")
+        u.detect_silence()
+
+        estimated_time = u.estimate_time(
+            audible_speed=1, silent_speed=100)
+
+        u.render_media(video[:-4]+"_silenced.mp4", audible_speed=1,
+                       silent_speed=100)
+        print(video[:-4]+"_silenced.mp4", "processed")
+        print()

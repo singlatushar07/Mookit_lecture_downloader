@@ -3,3 +3,4 @@ wget
 tabulate
 requests
 lxml
+unsilence
