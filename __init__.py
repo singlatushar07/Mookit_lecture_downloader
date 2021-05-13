@@ -59,6 +59,19 @@ if not os.path.exists(downloadPath):
     os.makedirs(downloadPath)
 
 failed = []
+modified_indexes = []
+for i in range(len(lectures)):
+    count = 0
+    for j in range(len(lectures)):
+        if i in modified_indexes:
+            break
+        if i == j:
+            continue
+        if(lectures[i]['title'] == lectures[j]['title']):
+            count += 1
+            lectures[j]['title'] += " " + str(count)
+            modified_indexes.append(j)
+    modified_indexes.append(i)
 for lecture in lectures:
     print("Downloading %s" % lecture['title'])
     downloadPath = os.path.join(os.path.dirname(
